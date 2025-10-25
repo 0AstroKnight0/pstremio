@@ -16,5 +16,18 @@ updateStorage({
 (globalThis as any).window = {
     localStorage: {
         getItem: (key: string) => storage[key] || null
-    }
+    },
+    document: {}
 };
+
+(globalThis as any).document = (globalThis as any).window.document;
+
+export const updateTurnstileToken = (token: string) =>
+    ((
+        globalThis as any
+    ).document.cookie = `xprime-turnstile-token=${encodeURIComponent(
+        JSON.stringify({
+            token,
+            createdAt: 9007199254740991
+        })
+    )}`);

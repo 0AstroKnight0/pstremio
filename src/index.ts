@@ -17,7 +17,7 @@ import type {
     Stream
 } from "@p-stream/providers";
 import HLSParser from "hls-parser";
-import { updateStorage } from "./polyfill";
+import { updateStorage, updateTurnstileToken } from "./polyfill";
 
 const HEADER_OVERRIDES = {
     Origin: "https://pstream.mov",
@@ -135,7 +135,7 @@ const convertCommon = (
             : ""
     }`,
     subtitles: stream.captions.map((caption) => ({
-        id: caption.id,
+        id: caption.id.toString(),
         url: caption.url,
         lang: caption.language
     })),
@@ -212,6 +212,7 @@ app.get("/:source/stream/:type{(movie|series)}/:id{(.+)\\.json}", async (c) => {
             }
         }
     });
+    updateTurnstileToken(c.req.param("source").split(",")[3]);
     const type = c.req.param("type");
     const id = c.req.param("id");
     const media = await getMediaInfo(type, id);

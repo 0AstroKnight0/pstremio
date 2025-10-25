@@ -61,6 +61,13 @@
                 <option value="singapore">Singapore</option>
                 <option value="mumbai">Mumbai, India</option>
             </select>
+            <input
+                type="password"
+                name="turnstile_token"
+                id="turnstile_token"
+                class="border-2 border-slate-600 rounded-xl h-12 p-2 mt-8"
+                placeholder="Turnstile token"
+            />
             <button
                 class="bg-slate-900 h-12 p-2 border-2 border-slate-600 rounded-xl cursor-pointer"
                 id="button"
@@ -70,6 +77,7 @@
         </div>
         <script type="module">
             const NEEDS_FEBBOX_KEY = ["fedapi", "cia-api"];
+            const NEEDS_TURNSTILE_TOKEN = ["fedapi", "xprimetv"];
             const sources = await fetch("/api/sources").then((resp) =>
                 resp.json()
             );
@@ -97,6 +105,9 @@
             const febbox_key_input = document.getElementById("febbox_key");
             /** @type HTMLSelectElement */
             const region_input = document.getElementById("region");
+            /** @type HTMLInputElement */
+            const turnstile_token_input =
+                document.getElementById("turnstile_token");
             /** @type HTMLButtonElement */
             const button = document.getElementById("button");
             button.onclick = async (e) => {
@@ -104,6 +115,7 @@
                 const password = password_input.value;
                 const febboxKey = febbox_key_input.value;
                 const region = region_input.value;
+                const turnstileToken = turnstile_token_input.value;
                 if (!email || !password)
                     return alert("enter login credentials");
 
@@ -141,11 +153,28 @@
                             return console.warn(
                                 `skipping ${source} because it needs a febbox key`
                             );
+                        if (
+                            NEEDS_TURNSTILE_TOKEN.includes(source) &&
+                            !turnstileToken
+                        )
+                            return console.warn(
+                                `skipping ${source} because it needs a turnstile token`
+                            );
 
                         const manifestURL = `${location.href}${[
                             source,
-                            ...(NEEDS_FEBBOX_KEY.includes(source)
-                                ? [febboxKey, region || "new-york"]
+                            ...([
+                                NEEDS_FEBBOX_KEY,
+                                ...NEEDS_TURNSTILE_TOKEN
+                            ].includes(source)
+                                ? [
+                                      ...(NEEDS_FEBBOX_KEY.includes(source)
+                                          ? [febboxKey, region || "new-york"]
+                                          : ["", ""]),
+                                      ...(NEEDS_TURNSTILE_TOKEN.includes(source)
+                                          ? [turnstileToken]
+                                          : [])
+                                  ]
                                 : [])
                         ].join(",")}/manifest.json`;
                         const manifest = await fetch(manifestURL).then((resp) =>
